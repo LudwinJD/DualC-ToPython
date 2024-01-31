@@ -1,0 +1,132 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>CAMBIAR PYTHON A C++</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" crossorigin="anonymous">
+  </head>
+  <body class="bg-dark text-light">
+
+    <div class="container mt-5">
+      <h1 class="display-4 text-center mb-4 bg-dark text-light">CAMBIAR C++ A PYTHON</h1>
+
+      <form id="languageForm" class="mb-4" enctype="multipart/form-data">
+        <div class="mb-3 bg-dark text-light" >
+          <label for="languageSelect" class="form-label">Seleccione el lenguaje:</label>
+          <select id="languageSelect" class="form-select" name="language">
+            <option value="python">Python a C++</option>
+            <option value="cpp">C++ a Python</option>
+          </select>
+        </div>
+
+        <div class="mb-3 bg-dark text-light">
+          <button type="button" class="btn btn-outline-primary" onclick="cambiarVista()">Cambiar Vista</button>
+        </div>
+
+        <div class="mb-3 bg-dark text-light">
+          <label for="fileInput" class="form-label">Subir Archivo:</label>
+          <input type="file" id="fileInput" name="fileInput" class="form-control" accept=".txt, .py, .cpp">
+        </div>
+
+        <div class="mb-3 bg-dark text-light">
+          <button type="button" class="btn btn-outline-success" onclick="leerArchivo()">Leer Archivo</button>
+        </div>
+      </form>
+
+      <div class="mb-3 bg-dark text-light">
+        <label for="codigo" class="form-label">Ingresa tu código:</label>
+        <textarea id="codigo" class="form-control" rows="10"></textarea>
+      </div>
+
+      <div class="mb-3 ">
+        <button type="button" class="btn btn-outline-primary" onclick="ejecutarCodigo()">Ejecutar Código</button>
+      </div>
+
+      <div class="mb-3 bg-dark text-light">
+        <label for="codigoSalida" class="form-label">Contenido de salida.py:</label>
+        <textarea id="codigoSalida" class="form-control" rows="10" readonly></textarea>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS (Optional) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+  <script>
+    function cambiarVista() {
+      const languageSelect = document.getElementById("languageSelect");
+      const selectedLanguage =
+        languageSelect.options[languageSelect.selectedIndex].value;
+
+      if (selectedLanguage === "python") {
+        window.location.href = "indexP.html";
+      } else if (selectedLanguage === "cpp") {
+        window.location.href = "index.html";
+      }
+    }
+    function leerArchivo() {
+      // Obtener el archivo seleccionado
+      const fileInput = document.getElementById("fileInput");
+
+      // Verificar si se ha seleccionado un archivo
+      if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+
+        // Utilizar FormData para enviar el archivo al servidor
+        const formData = new FormData();
+        formData.append("fileInput", file);
+
+        // Enviar el archivo a la ruta de Flask para su lectura
+        fetch("/leer_archivo_cpp", {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.mensaje === "Archivo leído correctamente") {
+              document.getElementById("codigo").value = data.contenido;
+            } else {
+              alert("Error al leer el archivo.");
+            }
+          });
+      } else {
+        alert("Por favor, seleccione un archivo.");
+      }
+    }
+    function ejecutarCodigo() {
+      const codigo = document.getElementById("codigo").value;
+
+      fetch("/guardar_codigo_cpp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ codigo: codigo }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          fetch("/ejecutar_cpp_a_python")
+            .then((response) => response.json())
+            .then((data) => {
+              /*const resultadoDiv = document.getElementById('resultado');
+            data.resultado.split('\n').forEach(line => {
+                const p = document.createElement('p');
+                p.textContent = line;
+                resultadoDiv.appendChild(p);
+            });*/
+
+              fetch("/obtener_salida_cpp_a_python")
+                .then((response) => response.json())
+                .then((data) => {
+                  document.getElementById("codigoSalida").value =
+                    data.codigoSalida;
+                });
+            });
+        });
+    }
+  </script>
+</body>
+
+</html>
